@@ -1,0 +1,27 @@
+{
+  "name": "atmosweather_api",
+  "version": "0.0.1",
+  "description": "A website that show weather forecast in various cities",
+  "main": "server.js",
+  "proxy": "http://localhost:8080",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmpireDemocratiqueDuPoulpe/AtmosWeatherAPI.git"
+  },
+  "author": "EmpireDemocratiqueDuPoulpe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EmpireDemocratiqueDuPoulpe/AtmosWeatherAPI/issues"
+  },
+  "homepage": "https://github.com/EmpireDemocratiqueDuPoulpe/AtmosWeatherAPI#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1"
+  }
+}
