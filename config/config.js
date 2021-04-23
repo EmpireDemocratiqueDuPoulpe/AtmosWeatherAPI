@@ -1,13 +1,13 @@
 const config = {
-  app: {
-    port: 8080
-  },
-  api: {
-    prefix: "/api"
-  },
-  client: {
-    prefix: "/"
-  }
+	app: {
+		port: 8080
+	},
+	db: {
+		url: "mongodb://localhost:27017/AtmosWeatherDB"
+	},
+	api: {
+		prefix: "/api"
+	}
 };
 
 export default config;
