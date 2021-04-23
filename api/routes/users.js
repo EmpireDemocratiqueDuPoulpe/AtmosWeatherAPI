@@ -9,13 +9,13 @@ export default (router) => {
 
 	/* ---- ADD ------------------------------------- */
 	route.post("/", async (request, response) => {
-		const { username, email, password } = request.body;
+		const { username, email, password1, password2 } = request.body;
 
 		try {
-			const result = await UserModel.add(username, email, password);
+			const result = await UserModel.add(username, email, password1, password2);
 
 			if (result.error) {
-				response.send(result.error).status(result.code).end();
+				response.json(result).status(result.code).end();
 			} else {
 				response.status(202).end();
 			}

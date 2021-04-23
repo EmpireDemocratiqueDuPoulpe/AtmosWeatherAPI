@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import config from "./config/config.js";
 import apiRoutes from "./api/index.js";
 
+// TODO: Enable HTTPS
 async function startServer() {
 	const app = express();
 	const port = config.app.port || 3000;

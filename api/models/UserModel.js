@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import config from "../../config/config.js";
 
 /*****************************************************
  * Mongoose schemes
@@ -36,10 +38,13 @@ const checkPassword = password => {
 	return password !== undefined && `${password}`.length > 0;
 };
 
-/*
 const checkPasswordsPair = (password1, password2) => {
 	return password1 === password2;
-};*/
+};
+
+const hashPassword = async password => {
+	return await bcrypt.hash(password, config.app.security.saltRound);
+};
 
 /*****************************************************
  * CRUD Methods
@@ -47,13 +52,14 @@ const checkPasswordsPair = (password1, password2) => {
 
 /* ---- CREATE ---------------------------------- */
 // TODO: Checks as middlewares?
-const add = (username, email, password) => {
+const add = async (username, email, password1, password2) => {
 	// Check if something is missing
 	let missing = [];
 
 	if (!checkUsername(username)) { missing.push("username"); }
 	if (!checkEmail(email)) { missing.push("email"); }
-	if (!checkPassword(password)) { missing.push("password"); }
+	if (!checkPassword(password1)) { missing.push("password1"); }
+	if (!checkPassword(password2)) { missing.push("password2"); }
 
 	if (missing.length > 0) {
 		return { code: 400, error: `Missing "${missing.join(", ")}" parameter(s) to add this new user.`};
@@ -62,18 +68,26 @@ const add = (username, email, password) => {
 	// Check if something is not available
 	let notAvailable = [];
 
-	if (!checkUsernameAvailability(username)) { notAvailable.push("username"); }
-	if (!checkEmailAvailability(email)) { notAvailable.push("email"); }
+	if (await checkUsernameAvailability(username)) { notAvailable.push("username"); }
+	if (await checkEmailAvailability(email)) { notAvailable.push("email"); }
 
 	if (notAvailable.length > 0) {
-		return { code: 400, error: `These fields are already taken by another user: "${missing.join(", ")}"`};
+		return { code: 400, error: `These fields are already taken by another user: "${notAvailable.join(", ")}"`};
 	}
+
+	// Check if something is invalid
+	if (!checkPasswordsPair(password1, password2)) {
+		return { code: 400, error: "Passwords doesn't match"};
+	}
+
+	// Hash password
+	const hashedPwd = await hashPassword(password1);
 
 	// Add the user
 	const user = new Users({
 		username: username,
 		email: email,
-		password: password
+		password: hashedPwd
 	});
 
 	return user.save();
