@@ -98,6 +98,10 @@ const get = userId => {
 	return Users.findById(userId).exec();
 };
 
+const getByEmail = email => {
+	return Users.findOne({ email: email }).exec();
+};
+
 const getAll = () => {
 	return Users.find({}).exec();
 };
@@ -106,5 +110,5 @@ const getAll = () => {
  * Export
  *****************************************************/
 
-const UserModel = { add, get, getAll };
+const UserModel = { add, get, getByEmail, getAll };
 export default UserModel;

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import UserModel from "../models/UserModel.js";
+import TokenModel from "../models/TokenModel.js";
 
 const route = Router();
 
@@ -7,7 +8,7 @@ const route = Router();
 export default (router) => {
 	router.use("/users", route);
 
-	/* ---- ADD ------------------------------------- */
+	/* ---- CREATE ---------------------------------- */
 	route.post("/", async (request, response) => {
 		const { username, email, password1, password2 } = request.body;
 
@@ -25,7 +26,25 @@ export default (router) => {
 		}
 	});
 
-	/* ---- GET ------------------------------------- */
+	/* ---- READ ------------------------------------ */
+	route.post("/login", async (request, response) => {
+		const { email } = request.body;
+
+		try {
+			const user = await UserModel.getByEmail(email);
+
+			if (!user) {
+				response.status(204).end();
+			} else {
+				const token = await TokenModel.getNew(user._id);
+				response.json({ token: token.token }).status(200).end();
+			}
+
+		} catch (err) {
+			response.json({error: err.message}).status(500).end();
+		}
+	});
+
 	route.get("/all", (request, response) => {
 		UserModel.getAll()
 			.then(users => response.json(users).status(200).end())
