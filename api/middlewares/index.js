@@ -1,5 +1,5 @@
-import getTempData from "./getTempData.js";
+import checkParams from "./checkParams.js";
 
 export default {
-	getTempData
+	checkParams
 };

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import checkParams from "../../global/checkParams.js";
+import middlewares from "../middlewares/index.js";
 import CityModel from "../models/CityModel.js";
 
 const route = Router();
@@ -8,14 +8,10 @@ export default (router) => {
 	router.use("/cities", route);
 
 	/* ---- CREATE ---------------------------------- */
-	route.post("/", (request, response) => {
-		const params = checkParams(request, ["uid", "name"]);
+	route.post("/", middlewares.checkParams("uid", "name"), (request, response) => {
+		const { uid, name } = request.body;
 
-		if (params.missingMsg) {
-			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
-		}
-
-		CityModel.add(params.uid, params.name)
+		CityModel.add(uid, name)
 			.then(() => response.json({ message: "City added" }).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
@@ -28,14 +24,10 @@ export default (router) => {
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
 
-	route.get("/:uid", (request, response) => {
-		const params = checkParams(request, ["uid"]);
+	route.get("/:uid", middlewares.checkParams("uid"), (request, response) => {
+		const { uid } = request.params;
 
-		if (params.missingMsg) {
-			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
-		}
-
-		CityModel.getOf(params.uid)
+		CityModel.getOf(uid)
 			.then(cities => response.json(cities).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});

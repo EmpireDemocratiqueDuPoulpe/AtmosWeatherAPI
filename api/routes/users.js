@@ -1,5 +1,5 @@
 import { Router } from "express";
-import checkParams from "../../global/checkParams.js";
+import middlewares from "../middlewares/index.js";
 import UserModel from "../models/UserModel.js";
 import TokenModel from "../models/TokenModel.js";
 import ModelError from "../../global/ModelError.js";
@@ -12,15 +12,11 @@ export default (router) => {
 
 	/* ---- CREATE ---------------------------------- */
 	// TODO: checkParams as middleware?
-	route.post("/", async (request, response) => {
-		const params = checkParams(request, ["username", "email", "password1", "password2"]);
-
-		if (params.missingMsg) {
-			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
-		}
+	route.post("/", middlewares.checkParams("username", "email", "password1", "password2"), async (request, response) => {
+		const { username, email, password1, password2 } = request.body;
 
 		try {
-			const result = await UserModel.add(params.username, params.email, params.password1, params.password2);
+			const result = await UserModel.add(username, email, password1, password2);
 
 			if (result instanceof ModelError) {
 				response.json(result.json()).status(result.code()).end();
@@ -34,15 +30,11 @@ export default (router) => {
 	});
 
 	/* ---- READ ------------------------------------ */
-	route.post("/login", async (request, response) => {
-		const params = checkParams(request, ["email", "password"]);
-
-		if (params.missingMsg) {
-			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
-		}
+	route.post("/login", middlewares.checkParams("email", "password"), async (request, response) => {
+		const { email, password } = request.body;
 
 		try {
-			const result = await UserModel.login(params.email, params.password);
+			const result = await UserModel.login(email, password);
 
 			if (result instanceof ModelError) {
 				response.json(result.json()).status(result.code()).end();
@@ -65,14 +57,10 @@ export default (router) => {
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
 
-	route.get("/:id", (request, response) => {
-		const params = checkParams(request, ["id"]);
+	route.get("/:uid", middlewares.checkParams("uid"), (request, response) => {
+		const { uid } = request.body;
 
-		if (params.missingMsg) {
-			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
-		}
-
-		UserModel.get(params.id)
+		UserModel.get(uid)
 			.then(user => response.json(user || {}).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
