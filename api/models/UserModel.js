@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import config from "../../config/config.js";
+import ModelError from "../../global/ModelError.js";
 
 /*****************************************************
  * Mongoose schemes
@@ -18,27 +19,27 @@ const Users = mongoose.model("User", UserSchema, "users");
  * Checkers
  *****************************************************/
 
-const checkUsername = username => {
+const isValidUsername = username => {
 	return username !== undefined && `${username}`.length > 0 && `${username}`.length < 32;
 };
 
-const checkUsernameAvailability = async username => {
+const isUsernameAvailable = async username => {
 	return !!await Users.findOne({ username: username }).exec();
 };
 
-const checkEmail = email => {
+const isValidEmail = email => {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-const checkEmailAvailability = async email => {
+const isEmailAvailable = async email => {
 	return !!await Users.findOne({ email: email }).exec();
 };
 
-const checkPassword = password => {
-	return password !== undefined && `${password}`.length > 0;
+const isValidPassword = password => {
+	return password !== undefined && `${password}`.length >= 8;
 };
 
-const checkPasswordsPair = (password1, password2) => {
+const doesPasswordsMatch = (password1, password2) => {
 	return password1 === password2;
 };
 
@@ -46,38 +47,40 @@ const hashPassword = async password => {
 	return await bcrypt.hash(password, config.app.security.saltRound);
 };
 
+const doesPasswordMatchHash = async (password, hash) => {
+	return await bcrypt.compare(password, hash);
+};
+
 /*****************************************************
  * CRUD Methods
  *****************************************************/
 
 /* ---- CREATE ---------------------------------- */
-// TODO: Checks as middlewares?
 const add = async (username, email, password1, password2) => {
-	// Check if something is missing
-	let missing = [];
+	// Check if something is invalid
+	if (!isValidUsername(username)) {
+		return new ModelError(400, "The username cannot be empty or longer than 32 characters.");
+	}
 
-	if (!checkUsername(username)) { missing.push("username"); }
-	if (!checkEmail(email)) { missing.push("email"); }
-	if (!checkPassword(password1)) { missing.push("password1"); }
-	if (!checkPassword(password2)) { missing.push("password2"); }
+	if (!isValidEmail(email)) {
+		return new ModelError(400, "You must provide a valid email address.");
+	}
 
-	if (missing.length > 0) {
-		return { code: 400, error: `Missing "${missing.join(", ")}" parameter(s) to add this new user.`};
+	if (!isValidPassword(password1) || !isValidPassword(password2)) {
+		return new ModelError(400, "The password must be at least 8 characters long.");
+	}
+
+	if (!doesPasswordsMatch(password1, password2)) {
+		return new ModelError(400, "The passwords don't match.");
 	}
 
 	// Check if something is not available
-	let notAvailable = [];
-
-	if (await checkUsernameAvailability(username)) { notAvailable.push("username"); }
-	if (await checkEmailAvailability(email)) { notAvailable.push("email"); }
-
-	if (notAvailable.length > 0) {
-		return { code: 400, error: `These fields are already taken by another user: "${notAvailable.join(", ")}"`};
+	if (await isUsernameAvailable(username)) {
+		return new ModelError(400, "This username is already taken.");
 	}
 
-	// Check if something is invalid
-	if (!checkPasswordsPair(password1, password2)) {
-		return { code: 400, error: "Passwords doesn't match"};
+	if (await isEmailAvailable(email)) {
+		return new ModelError(400, "This email address is already taken.");
 	}
 
 	// Hash password
@@ -106,9 +109,28 @@ const getAll = () => {
 	return Users.find({}).exec();
 };
 
+const login = async (email, password) => {
+	if (!isValidEmail(email)) {
+		return new ModelError(400, "You must provide a valid email address.");
+	}
+
+	if (!isValidPassword(password)) {
+		return new ModelError(400, "The password must be at least 8 characters long.");
+	}
+
+	const user = await getByEmail(email);
+	const canConnect = user ? await doesPasswordMatchHash(password, user.password) : false;
+
+	if (!canConnect) {
+		return new ModelError(400, "No users were found with this email and password combination.");
+	} else {
+		return user;
+	}
+};
+
 /*****************************************************
  * Export
  *****************************************************/
 
-const UserModel = { add, get, getByEmail, getAll };
+const UserModel = { add, get, getByEmail, getAll, login };
 export default UserModel;
