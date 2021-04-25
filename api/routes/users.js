@@ -11,11 +11,12 @@ export default (router) => {
 	router.use("/users", route);
 
 	/* ---- CREATE ---------------------------------- */
+	// TODO: checkParams as middleware?
 	route.post("/", async (request, response) => {
 		const params = checkParams(request, ["username", "email", "password1", "password2"]);
 
 		if (params.missingMsg) {
-			return response.json({ error: params.missingMsg }).status(400).end();
+			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
 		}
 
 		try {
@@ -37,7 +38,7 @@ export default (router) => {
 		const params = checkParams(request, ["email", "password"]);
 
 		if (params.missingMsg) {
-			return response.json({ error: params.missingMsg }).status(400).end();
+			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
 		}
 
 		try {
@@ -46,8 +47,10 @@ export default (router) => {
 			if (result instanceof ModelError) {
 				response.json(result.json()).status(result.code()).end();
 			} else {
-				const token = await TokenModel.getNew(result._id);
-				response.json({ token: token.token }).status(200).end();
+				const uid = result._id;
+				const token = await TokenModel.getNew(uid);
+
+				response.json({ uid: uid, token: token.token }).status(200).end();
 			}
 
 		} catch (err) {
@@ -55,7 +58,8 @@ export default (router) => {
 		}
 	});
 
-	route.get("/all", (request, response) => {
+	// TODO: Remove dev route
+	route.get("/dev/all", (request, response) => {
 		UserModel.getAll()
 			.then(users => response.json(users).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
@@ -65,12 +69,11 @@ export default (router) => {
 		const params = checkParams(request, ["id"]);
 
 		if (params.missingMsg) {
-			return response.json({ error: params.missingMsg }).status(400).end();
+			return response.json({ code: 400, error: params.missingMsg }).status(400).end();
 		}
 
 		UserModel.get(params.id)
-			.then(user => response.json(user || {}).status(200))
-			.catch(err => response.json({code: 500, error: err.message}).status(500))
-			.finally(() => response.end());
+			.then(user => response.json(user || {}).status(200).end())
+			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
 };

@@ -10,7 +10,7 @@ const randomBytesAsync = promisify(crypto.randomBytes);
  *****************************************************/
 
 const TokenSchema = new mongoose.Schema({
-	user_id: { type: String },
+	uid: { type: String },
 	token: { type: String }
 });
 
@@ -22,11 +22,11 @@ const Tokens = mongoose.model("Token", TokenSchema, "tokens");
 
 /* ---- CREATE ---------------------------------- */
 // TODO: Add token expiration date
-const getNew = async userId => {
+const getNew = async uid => {
 	const buf = await randomBytesAsync(48);
 	const randomToken = base64url(buf.toString("base64"));
 	const token = new Tokens({
-		user_id: userId,
+		uid: uid,
 		token: randomToken,
 	});
 

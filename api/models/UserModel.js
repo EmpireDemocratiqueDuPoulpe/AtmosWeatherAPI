@@ -97,8 +97,8 @@ const add = async (username, email, password1, password2) => {
 };
 
 /* ---- READ ------------------------------------ */
-const get = userId => {
-	return Users.findById(userId).exec();
+const get = uid => {
+	return Users.findById(uid).exec();
 };
 
 const getByEmail = email => {

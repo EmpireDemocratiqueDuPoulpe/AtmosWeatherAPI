@@ -13,6 +13,6 @@ export default class ModelError {
 	}
 
 	json() {
-		return { code: this.code(), message: this.message() };
+		return { code: this.code(), error: this.message() };
 	}
 }
