@@ -1,4 +1,9 @@
 import mongoose from "mongoose";
+import { promisify } from "util";
+import crypto from "crypto";
+import base64url from "base64url";
+
+const randomBytesAsync = promisify(crypto.randomBytes);
 
 /*****************************************************
  * Mongoose schemes
@@ -16,11 +21,10 @@ const Tokens = mongoose.model("Token", TokenSchema, "tokens");
  *****************************************************/
 
 /* ---- CREATE ---------------------------------- */
-// TODO: Better token generation
-const getNew = userId => {
-	const randomToken = "superSafeToken";
-
-	// Add the token
+// TODO: Add token expiration date
+const getNew = async userId => {
+	const buf = await randomBytesAsync(48);
+	const randomToken = base64url(buf.toString("base64"));
 	const token = new Tokens({
 		user_id: userId,
 		token: randomToken,
