@@ -11,7 +11,6 @@ export default (router) => {
 	router.use("/users", route);
 
 	/* ---- CREATE ---------------------------------- */
-	// TODO: checkParams as middleware?
 	route.post("/", middlewares.checkParams("username", "email", "password1", "password2"), async (request, response) => {
 		const { username, email, password1, password2 } = request.body;
 
