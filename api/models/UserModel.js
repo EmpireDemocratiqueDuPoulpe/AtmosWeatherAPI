@@ -7,6 +7,7 @@ import ModelError from "../../global/ModelError.js";
  * Mongoose schemes
  *****************************************************/
 
+// TODO: Use populate to get cities with the user
 const UserSchema = new mongoose.Schema({
 	username: { type: String },
 	email: { type: String },
