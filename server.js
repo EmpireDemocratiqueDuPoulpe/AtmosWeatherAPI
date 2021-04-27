@@ -50,21 +50,3 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
-
-/*
-// Static files from react app
-app.use(express.static(path.join(__dirname, "client/build")));
-
-// API routes
-app.get("/api/temp", (request, response) => {
-  const list = ["item1", "item2", "item3"];
-  response.json(list);
-});
-
-// React app
-app.get("*", (request, response) => {
-  response.sendFile(path.join(`${__dirname}/client/build/index.html`));
-});
-
-app.listen(port);
-console.log(`Server started. Listening on port ${port}.`);*/
