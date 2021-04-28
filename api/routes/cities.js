@@ -8,11 +8,12 @@ export default (router) => {
 	router.use("/cities", route);
 
 	/* ---- CREATE ---------------------------------- */
+	// TODO: Prevent from adding a city already added
 	route.post("/", middlewares.checkParams("uid", "name"), (request, response) => {
 		const { uid, name } = request.body;
 
 		CityModel.add(uid, name)
-			.then(() => response.json({ message: "City added" }).status(200).end())
+			.then(() => response.json({ code: 200, message: "City added" }).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
 

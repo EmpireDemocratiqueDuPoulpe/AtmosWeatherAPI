@@ -39,9 +39,10 @@ export default (router) => {
 				response.json(result.json()).status(result.code()).end();
 			} else {
 				const uid = result._id;
+				const username = result.username;
 				const token = await TokenModel.getNew(uid);
 
-				response.json({ uid: uid, token: token.token }).status(200).end();
+				response.json({ uid: uid, username: username, token: token.token }).status(200).end();
 			}
 
 		} catch (err) {
