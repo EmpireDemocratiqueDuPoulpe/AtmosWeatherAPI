@@ -34,9 +34,14 @@ const getAll = () => {
 	return Cities.find({}).exec();
 };
 
+/* ---- DELETE ---------------------------------- */
+const del = (uid, name) => {
+	return Cities.deleteOne({ uid: uid, name: name }).exec();
+};
+
 /*****************************************************
  * Export
  *****************************************************/
 
-const CityModel = { add, getOf, getAll };
+const CityModel = { add, getOf, getAll, delete: del };
 export default CityModel;

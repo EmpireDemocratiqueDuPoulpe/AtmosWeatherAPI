@@ -31,4 +31,19 @@ export default (router) => {
 			.then(cities => response.json(cities).status(200).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
+
+	/* ---- DELETE ---------------------------------- */
+	route.delete("/", middlewares.checkParams("uid", "name"), (request, response) => {
+		const { uid, name } = request.body;
+
+		CityModel.delete(uid, name)
+			.then(status => {
+				if (status.ok === 1) {
+					response.json({ code: 202 }).status(202).end();
+				} else {
+					response.json({ code: 404, message: `This user (${uid}) has no city named "${name}"` }).status(404).end();
+				}
+			})
+			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+	});
 };
