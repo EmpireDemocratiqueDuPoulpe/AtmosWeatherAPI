@@ -25,7 +25,7 @@ export default function checkParams(...paramsNames) {
 		}
 
 		return next();
-	}
+	};
 }
 
 function isNullOrUndefined(value) {
