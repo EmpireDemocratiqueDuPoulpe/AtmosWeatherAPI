@@ -1,6 +1,7 @@
 const config = {
 	app: {
 		port: 8080,
+		securePort: 8443,
 		security: {
 			saltRound: 10
 		}

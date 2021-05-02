@@ -6,7 +6,6 @@ import ModelError from "../../global/ModelError.js";
 
 const route = Router();
 
-// TODO: Optimize. One day. Maybe. Not sure. uugh
 export default (router) => {
 	router.use("/users", route);
 
@@ -18,13 +17,13 @@ export default (router) => {
 			const result = await UserModel.add(username, email, password1, password2);
 
 			if (result instanceof ModelError) {
-				response.json(result.json()).status(result.code()).end();
+				response.status(result.code()).json(result.json()).end();
 			} else {
 				response.status(202).end();
 			}
 
 		} catch (err) {
-			response.json({code: 500, error: err.message}).status(500).end();
+			response.status(500).json({code: 500, error: err.message}).end();
 		}
 	});
 
@@ -36,32 +35,32 @@ export default (router) => {
 			const result = await UserModel.login(email, password);
 
 			if (result instanceof ModelError) {
-				response.json(result.json()).status(result.code()).end();
+				response.status(result.code()).json(result.json()).end();
 			} else {
 				const uid = result._id;
 				const username = result.username;
 				const token = await TokenModel.getNew(uid);
 
-				response.json({ uid: uid, username: username, token: token.token }).status(200).end();
+				response.status(200).json({ uid: uid, username: username, token: token.token }).end();
 			}
 
 		} catch (err) {
-			response.json({code: 500, error: err.message}).status(500).end();
+			response.status(500).json({code: 500, error: err.message}).end();
 		}
 	});
 
 	// TODO: Remove dev route
 	route.get("/dev/all", (request, response) => {
 		UserModel.getAll()
-			.then(users => response.json(users).status(200).end())
-			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+			.then(users => response.status(200).json(users).end())
+			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
 	});
 
 	route.get("/:uid", middlewares.checkParams("uid"), (request, response) => {
 		const { uid } = request.body;
 
 		UserModel.get(uid)
-			.then(user => response.json(user || {}).status(200).end())
-			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+			.then(user => response.status(200).json(user || {}).end())
+			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
 	});
 };

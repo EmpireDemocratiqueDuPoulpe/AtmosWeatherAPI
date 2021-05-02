@@ -8,12 +8,15 @@ export default (router) => {
 	router.use("/cities", route);
 
 	/* ---- CREATE ---------------------------------- */
-	// TODO: Prevent from adding a city already added
-	route.post("/", middlewares.checkParams("uid", "name"), (request, response) => {
+	route.post("/", middlewares.checkParams("uid", "name"), async (request, response) => {
 		const { uid, name } = request.body;
 
+		if(await CityModel.checkIfExist(uid, name)) {
+			return response.status(400).json({ code: 400, message: "The city is already added" }).end();
+		}
+
 		CityModel.add(uid, name)
-			.then(() => response.json({ code: 200, message: "City added" }).status(200).end())
+			.then(() => response.status(200).json({ code: 200, message: "City added" }).end())
 			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
 	});
 
@@ -21,16 +24,16 @@ export default (router) => {
 	// TODO: Remove dev route
 	route.get("/dev/all", (request, response) => {
 		CityModel.getAll()
-			.then(cities => response.json(cities).status(200).end())
-			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+			.then(cities => response.status(200).json(cities).end())
+			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
 	});
 
 	route.get("/:uid", middlewares.checkParams("uid"), (request, response) => {
 		const { uid } = request.params;
 
 		CityModel.getOf(uid)
-			.then(cities => response.json(cities).status(200).end())
-			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+			.then(cities => response.status(200).json(cities).end())
+			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
 	});
 
 	/* ---- DELETE ---------------------------------- */
@@ -40,11 +43,11 @@ export default (router) => {
 		CityModel.delete(uid, name)
 			.then(status => {
 				if (status.ok === 1) {
-					response.json({ code: 202 }).status(202).end();
+					response.status(202).json({ code: 202 }).end();
 				} else {
-					response.json({ code: 404, message: `This user (${uid}) has no city named "${name}"` }).status(404).end();
+					response.status(404).json({ code: 404, message: `This user (${uid}) has no city named "${name}"` }).end();
 				}
 			})
-			.catch(err => response.json({code: 500, error: err.message}).status(500).end());
+			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
 	});
 };

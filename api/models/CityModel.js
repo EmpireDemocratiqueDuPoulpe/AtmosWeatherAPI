@@ -34,6 +34,10 @@ const getAll = () => {
 	return Cities.find({}).exec();
 };
 
+const checkIfExist = async (uid, name) => {
+	return !!await Cities.findOne({ uid: uid, name: name }).exec();
+};
+
 /* ---- DELETE ---------------------------------- */
 const del = (uid, name) => {
 	return Cities.deleteOne({ uid: uid, name: name }).exec();
@@ -43,5 +47,5 @@ const del = (uid, name) => {
  * Export
  *****************************************************/
 
-const CityModel = { add, getOf, getAll, delete: del };
+const CityModel = { add, getOf, getAll, checkIfExist, delete: del };
 export default CityModel;

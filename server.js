@@ -1,14 +1,25 @@
 import express from "express";
+import http from "http";
+import https from "https";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
+import fs from "fs";
 import config from "./config/config.js";
 import apiRoutes from "./api/index.js";
 
-// TODO: Enable HTTPS
+// FIXME: HTTPS is not working
 async function startServer() {
+	// Set up HTTPS
+	const key  = fs.readFileSync("./certs/localhost.key", "utf8");
+	const cert  = fs.readFileSync("./certs/localhost.crt", "utf8");
+	const opts = { key: key, cert: cert };
+
 	const app = express();
+	const server = http.createServer(app);
+	const secureServer = https.createServer(opts, app);
 	const port = config.app.port || 3000;
+	const securePort = config.app.securePort || 3443;
 
 	// Check if the server is still alive
 	app.get("/status", (request, response) => {
@@ -30,23 +41,31 @@ async function startServer() {
 	app.use(config.api.prefix, apiRoutes());
 
 	// Handle 404
-	// Todo: Redirect to 404 page
 	app.use((request, response, next) => {
 		response.status(404).end();
 		next();
 	});
 
 	// Start listening
-	app.listen(port, () => {
-		console.log(`
-      ############## AtmosWeather ###############
-       Server started. Listening on port ${port}.
-      ###########################################
-    `);
+	server.listen(port, () => {
+		console.log(getStartedMessage("http", port));
 	}).on("error", err => {
 		console.error(err);
 		process.exit(1);
 	});
+
+	secureServer.listen(securePort, () => {
+		console.log(getStartedMessage("https", securePort));
+	}).on("error", err => {
+		console.error(err);
+		process.exit(1);
+	});
+}
+
+function getStartedMessage(protocol, port) {
+	return "############## AtmosWeather API ##############\n" +
+		`Server started. Listening on port ${port} (${protocol}).\n` +
+		"##############################################";
 }
 
 startServer().catch(console.error);
