@@ -19,11 +19,11 @@ export default (router) => {
 			if (result instanceof ModelError) {
 				response.status(result.code()).json(result.json()).end();
 			} else {
-				response.status(202).end();
+				response.status(202).json({ message: "User added" }).end();
 			}
 
 		} catch (err) {
-			response.status(500).json({code: 500, error: err.message}).end();
+			response.status(500).json(new ModelError(500, err.message).json()).end();
 		}
 	});
 
@@ -45,7 +45,7 @@ export default (router) => {
 			}
 
 		} catch (err) {
-			response.status(500).json({code: 500, error: err.message}).end();
+			response.status(500).json(new ModelError(500, err.message).json()).end();
 		}
 	});
 
@@ -53,7 +53,7 @@ export default (router) => {
 	route.get("/dev/all", (request, response) => {
 		UserModel.getAll()
 			.then(users => response.status(200).json(users).end())
-			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
+			.catch(err => response.status(500).json(new ModelError(500, err.message).json()).end());
 	});
 
 	route.get("/:uid", middlewares.checkParams("uid"), (request, response) => {
@@ -61,6 +61,6 @@ export default (router) => {
 
 		UserModel.get(uid)
 			.then(user => response.status(200).json(user || {}).end())
-			.catch(err => response.status(500).json({code: 500, error: err.message}).end());
+			.catch(err => response.status(500).json(new ModelError(500, err.message).json()).end());
 	});
 };

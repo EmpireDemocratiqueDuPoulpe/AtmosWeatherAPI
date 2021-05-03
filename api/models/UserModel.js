@@ -20,7 +20,7 @@ const Users = mongoose.model("User", UserSchema, "users");
  *****************************************************/
 
 const isValidUsername = username => {
-	return username !== undefined && `${username}`.length > 0 && `${username}`.length < 32;
+	return username !== undefined && `${username}`.length > 0 && `${username}`.length <= 32;
 };
 
 const isUsernameAvailable = async username => {
@@ -59,28 +59,28 @@ const doesPasswordMatchHash = async (password, hash) => {
 const add = async (username, email, password1, password2) => {
 	// Check if something is invalid
 	if (!isValidUsername(username)) {
-		return new ModelError(400, "The username cannot be empty or longer than 32 characters.");
+		return new ModelError(400, "The username cannot be empty or longer than 32 characters.", ["username"]);
 	}
 
 	if (!isValidEmail(email)) {
-		return new ModelError(400, "You must provide a valid email address.");
+		return new ModelError(400, "You must provide a valid email address.", ["email"]);
 	}
 
 	if (!isValidPassword(password1) || !isValidPassword(password2)) {
-		return new ModelError(400, "The password must be at least 8 characters long.");
+		return new ModelError(400, "The password must be at least 8 characters long.", ["password"]);
 	}
 
 	if (!doesPasswordsMatch(password1, password2)) {
-		return new ModelError(400, "The passwords don't match.");
+		return new ModelError(400, "The passwords don't match.", ["password"]);
 	}
 
 	// Check if something is not available
 	if (await isUsernameAvailable(username)) {
-		return new ModelError(400, "This username is already taken.");
+		return new ModelError(400, "This username is already taken.", ["username"]);
 	}
 
 	if (await isEmailAvailable(email)) {
-		return new ModelError(400, "This email address is already taken.");
+		return new ModelError(400, "This email address is already taken.", ["email"]);
 	}
 
 	// Hash password
@@ -111,18 +111,18 @@ const getAll = () => {
 
 const login = async (email, password) => {
 	if (!isValidEmail(email)) {
-		return new ModelError(400, "You must provide a valid email address.");
+		return new ModelError(400, "You must provide a valid email address.", ["email"]);
 	}
 
 	if (!isValidPassword(password)) {
-		return new ModelError(400, "The password must be at least 8 characters long.");
+		return new ModelError(400, "The password must be at least 8 characters long.", ["password"]);
 	}
 
 	const user = await getByEmail(email);
 	const canConnect = user ? await doesPasswordMatchHash(password, user.password) : false;
 
 	if (!canConnect) {
-		return new ModelError(400, "No users were found with this email and password combination.");
+		return new ModelError(400, "No users were found with this email and password combination.", ["email", "password"]);
 	} else {
 		return user;
 	}
