@@ -14,12 +14,22 @@ export default (router) => {
 		const { username, email, password1, password2 } = request.body;
 
 		try {
-			const result = await UserModel.add(username, email, password1, password2);
+			const registerResult = await UserModel.add(username, email, password1, password2);
 
-			if (result instanceof ModelError) {
-				response.status(result.code()).json(result.json()).end();
+			if (registerResult instanceof ModelError) {
+				response.status(registerResult.code()).json(registerResult.json()).end();
 			} else {
-				response.status(202).json({ message: "User added" }).end();
+				const loginResult = await UserModel.login(email, password1);
+
+				if (loginResult instanceof ModelError) {
+					response.status(loginResult.code()).json(loginResult.json()).end();
+				} else {
+					const uid = loginResult._id;
+					const username = loginResult.username;
+					const token = await TokenModel.getNew(uid);
+
+					response.status(200).json({ uid: uid, username: username, token: token.token }).end();
+				}
 			}
 
 		} catch (err) {

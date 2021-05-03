@@ -39,6 +39,12 @@ const isValidPassword = password => {
 	return password !== undefined && `${password}`.length >= 8;
 };
 
+const isPasswordSafe = password => {
+	// At least 8 characters, one upper case letter, one lower case letter, one digit & one special character
+	const strongPwd = new RegExp("(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})");
+	return strongPwd.test(password);
+};
+
 const doesPasswordsMatch = (password1, password2) => {
 	return password1 === password2;
 };
@@ -68,6 +74,10 @@ const add = async (username, email, password1, password2) => {
 
 	if (!isValidPassword(password1) || !isValidPassword(password2)) {
 		return new ModelError(400, "The password must be at least 8 characters long.", ["password"]);
+	}
+
+	if (!isPasswordSafe(password1) || !isPasswordSafe(password2)) {
+		return new ModelError(400, "The password must be at least 8 characters long, including an upper case letter, a lower case letter, a number and a special character.", ["password"]);
 	}
 
 	if (!doesPasswordsMatch(password1, password2)) {
