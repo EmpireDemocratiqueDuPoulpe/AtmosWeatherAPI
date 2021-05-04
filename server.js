@@ -8,11 +8,10 @@ import fs from "fs";
 import config from "./config/config.js";
 import apiRoutes from "./api/index.js";
 
-// FIXME: HTTPS is not working
 async function startServer() {
 	// Set up HTTPS
-	const key  = fs.readFileSync("./certs/localhost.key", "utf8");
-	const cert  = fs.readFileSync("./certs/localhost.crt", "utf8");
+	const key  = fs.readFileSync("./certs/key.pem", "utf8");
+	const cert  = fs.readFileSync("./certs/cert.pem", "utf8");
 	const opts = { key: key, cert: cert };
 
 	const app = express();
