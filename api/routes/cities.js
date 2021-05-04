@@ -9,17 +9,21 @@ export default (router) => {
 	router.use("/cities", route);
 
 	/* ---- CREATE ---------------------------------- */
-	route.post("/", middlewares.checkParams("uid", "name"), async (request, response) => {
-		const { uid, name } = request.body;
+	route.post(
+		"/",
+		middlewares.checkParams("uid", "name"),
+		middlewares.htmlSpecialChars,
+		async (request, response) => {
+			const { uid, name } = request.body;
 
-		if(await CityModel.checkIfExist(uid, name)) {
-			return response.status(400).json(new ModelError(400, "The city is already added").json()).end();
-		}
+			if(await CityModel.checkIfExist(uid, name)) {
+				return response.status(400).json(new ModelError(400, "The city is already added").json()).end();
+			}
 
-		CityModel.add(uid, name)
-			.then(() => response.status(200).json({ code: 200 }).end())
-			.catch(err => response.json(new ModelError(500, err.message).json()).status(500).end());
-	});
+			CityModel.add(uid, name)
+				.then(() => response.status(200).json({ code: 200 }).end())
+				.catch(err => response.json(new ModelError(500, err.message).json()).status(500).end());
+		});
 
 	/* ---- READ ------------------------------------ */
 	// TODO: Remove dev route

@@ -10,54 +10,62 @@ export default (router) => {
 	router.use("/users", route);
 
 	/* ---- CREATE ---------------------------------- */
-	route.post("/", middlewares.checkParams("username", "email", "password1", "password2"), async (request, response) => {
-		const { username, email, password1, password2 } = request.body;
+	route.post(
+		"/",
+		middlewares.checkParams("username", "email", "password1", "password2"),
+		middlewares.htmlSpecialChars,
+		async (request, response) => {
+			const { username, email, password1, password2 } = request.body;
 
-		try {
-			const registerResult = await UserModel.add(username, email, password1, password2);
+			try {
+				const registerResult = await UserModel.add(username, email, password1, password2);
 
-			if (registerResult instanceof ModelError) {
-				response.status(registerResult.code()).json(registerResult.json()).end();
-			} else {
-				const loginResult = await UserModel.login(email, password1);
-
-				if (loginResult instanceof ModelError) {
-					response.status(loginResult.code()).json(loginResult.json()).end();
+				if (registerResult instanceof ModelError) {
+					response.status(registerResult.code()).json(registerResult.json()).end();
 				} else {
-					const uid = loginResult._id;
-					const username = loginResult.username;
+					const loginResult = await UserModel.login(email, password1);
+
+					if (loginResult instanceof ModelError) {
+						response.status(loginResult.code()).json(loginResult.json()).end();
+					} else {
+						const uid = loginResult._id;
+						const username = loginResult.username;
+						const token = await TokenModel.getNew(uid);
+
+						response.status(200).json({ uid: uid, username: username, token: token.token }).end();
+					}
+				}
+
+			} catch (err) {
+				response.status(500).json(new ModelError(500, err.message).json()).end();
+			}
+		});
+
+	/* ---- READ ------------------------------------ */
+	route.post(
+		"/login",
+		middlewares.checkParams("email", "password"),
+		middlewares.htmlSpecialChars,
+		async (request, response) => {
+			const { email, password } = request.body;
+
+			try {
+				const result = await UserModel.login(email, password);
+
+				if (result instanceof ModelError) {
+					response.status(result.code()).json(result.json()).end();
+				} else {
+					const uid = result._id;
+					const username = result.username;
 					const token = await TokenModel.getNew(uid);
 
 					response.status(200).json({ uid: uid, username: username, token: token.token }).end();
 				}
+
+			} catch (err) {
+				response.status(500).json(new ModelError(500, err.message).json()).end();
 			}
-
-		} catch (err) {
-			response.status(500).json(new ModelError(500, err.message).json()).end();
-		}
-	});
-
-	/* ---- READ ------------------------------------ */
-	route.post("/login", middlewares.checkParams("email", "password"), async (request, response) => {
-		const { email, password } = request.body;
-
-		try {
-			const result = await UserModel.login(email, password);
-
-			if (result instanceof ModelError) {
-				response.status(result.code()).json(result.json()).end();
-			} else {
-				const uid = result._id;
-				const username = result.username;
-				const token = await TokenModel.getNew(uid);
-
-				response.status(200).json({ uid: uid, username: username, token: token.token }).end();
-			}
-
-		} catch (err) {
-			response.status(500).json(new ModelError(500, err.message).json()).end();
-		}
-	});
+		});
 
 	// TODO: Remove dev route
 	route.get("/dev/all", (request, response) => {
